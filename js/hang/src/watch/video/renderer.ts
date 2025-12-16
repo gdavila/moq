@@ -17,7 +17,8 @@ export class Renderer {
 	paused: Signal<boolean>;
 
 	// Cache the last rendered frame to keep it visible when paused
-	#lastFrame = new Signal<VideoFrame | undefined>(undefined);
+	#lastFrame?: VideoFrame;
+
 	#ctx = new Signal<CanvasRenderingContext2D | undefined>(undefined);
 	#signals = new Effect();
 
@@ -83,15 +84,13 @@ export class Renderer {
 
 		// Update cached frame while is playing
 		if (currentFrame && !paused) {
-			this.#lastFrame.update((prev) => {
-				prev?.close();
-				return currentFrame.clone();
-			});
+			this.#lastFrame?.close();
+			this.#lastFrame = currentFrame.clone();
 		}
 
 		// Use current frame for rendering if not paused,
 		// otherwise use cached frame
-		const frameToRender = paused ? effect.get(this.#lastFrame)?.clone() : currentFrame?.clone();
+		const frameToRender = paused ? this.#lastFrame?.clone() : currentFrame?.clone();
 
 		// Request a callback to render the frame based on the monitor's refresh rate.
 		// Always render, even when paused (to show last frame)
@@ -136,10 +135,8 @@ export class Renderer {
 	// Close the track and all associated resources.
 	close() {
 		// Clean up cached frame
-		this.#lastFrame.update((prev) => {
-			prev?.close();
-			return undefined;
-		});
+		this.#lastFrame?.close();
+		this.#lastFrame = undefined;
 		this.#signals.close();
 	}
 }
