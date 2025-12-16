@@ -44,8 +44,12 @@ export class Renderer {
 		const display = effect.get(this.source.display);
 		if (!display) return; // Keep current canvas size until we have new dimensions
 
-		canvas.width = display.width;
-		canvas.height = display.height;
+		// Only update if dimensions actually changed (setting canvas.width/height clears the canvas)
+		// TODO I thought the signals library would prevent this, but I'm too lazy to investigate.
+		if (canvas.width !== display.width && canvas.height !== display.height) {
+			canvas.width = display.width;
+			canvas.height = display.height;
+		}
 	}
 
 	// Detect when video should be downloaded.
@@ -79,23 +83,21 @@ export class Renderer {
 		const ctx = effect.get(this.#ctx);
 		if (!ctx) return;
 
-		const currentFrame = effect.get(this.source.frame);
+		let frame: VideoFrame | undefined;
+
 		const paused = effect.get(this.paused);
-
-		// Update cached frame while is playing
-		if (currentFrame && !paused) {
+		if (!paused) {
+			frame = effect.get(this.source.frame);
 			this.#lastFrame?.close();
-			this.#lastFrame = currentFrame.clone();
+			this.#lastFrame = frame?.clone();
+		} else {
+			frame = this.#lastFrame?.clone();
 		}
-
-		// Use current frame for rendering if not paused,
-		// otherwise use cached frame
-		const frameToRender = paused ? this.#lastFrame?.clone() : currentFrame?.clone();
 
 		// Request a callback to render the frame based on the monitor's refresh rate.
 		// Always render, even when paused (to show last frame)
 		let animate: number | undefined = requestAnimationFrame(() => {
-			this.#render(ctx, frameToRender);
+			this.#render(ctx, frame);
 			animate = undefined;
 		});
 
@@ -103,7 +105,7 @@ export class Renderer {
 		effect.cleanup(() => {
 			// NOTE: Closing this frame is the only reason we don't use `effect.animate`.
 			// It's slighly more efficient to use one .cleanup() callback instead of two.
-			frameToRender?.close();
+			frame?.close();
 			if (animate) cancelAnimationFrame(animate);
 		});
 	}
