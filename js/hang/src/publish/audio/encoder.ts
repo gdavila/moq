@@ -37,6 +37,7 @@ export class Encoder {
 	muted: Signal<boolean>;
 	volume: Signal<number>;
 	maxLatency: Time.Milli;
+	#container?: Catalog.Container;
 
 	source: Signal<Source | undefined>;
 
@@ -55,12 +56,13 @@ export class Encoder {
 
 	#signals = new Effect();
 
-	constructor(props?: EncoderProps) {
+	constructor(props?: EncoderProps, container?: Catalog.Container) {
 		this.source = Signal.from(props?.source);
 		this.enabled = Signal.from(props?.enabled ?? false);
 		this.muted = Signal.from(props?.muted ?? false);
 		this.volume = Signal.from(props?.volume ?? 1);
 		this.maxLatency = props?.maxLatency ?? (100 as Time.Milli); // Default is a group every 100ms
+		this.#container = container;
 
 		this.#signals.effect(this.#runSource.bind(this));
 		this.#signals.effect(this.#runConfig.bind(this));
@@ -122,11 +124,13 @@ export class Encoder {
 		const worklet = effect.get(this.#worklet);
 		if (!worklet) return;
 
+		const container = this.#container ?? "raw";
 		const config = {
 			codec: "opus",
 			sampleRate: u53(worklet.context.sampleRate),
 			numberOfChannels: u53(worklet.channelCount),
 			bitrate: u53(worklet.channelCount * 32_000),
+			container,
 		};
 
 		effect.set(this.#config, config);
@@ -184,7 +188,7 @@ export class Encoder {
 						groupTimestamp = frame.timestamp as Time.Micro;
 					}
 
-					const buffer = Frame.encode(frame, frame.timestamp as Time.Micro);
+					const buffer = Frame.encode(frame, frame.timestamp as Time.Micro, this.#container);
 					group.writeFrame(buffer);
 				},
 				error: (err) => {
@@ -195,6 +199,8 @@ export class Encoder {
 			});
 			effect.cleanup(() => encoder.close());
 
+			const container = this.#container ?? "raw";
+			console.log(`[Audio Publisher] Using container format: ${container}`);
 			console.debug("encoding audio", config);
 			encoder.configure(config);
 

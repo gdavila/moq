@@ -196,8 +196,12 @@ export class Source {
 		effect.cleanup(() => sub.close());
 
 		// Create consumer that reorders groups/frames up to the provided latency.
+		// Fallback to "legacy" for backward compatibility with Rust publishers
+		const container = config.container ?? "legacy";
+		console.log(`[Video Subscriber] Using container format: ${container}`);
 		const consumer = new Frame.Consumer(sub, {
 			latency: this.latency,
+			container,
 		});
 		effect.cleanup(() => consumer.close());
 

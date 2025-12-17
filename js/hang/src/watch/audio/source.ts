@@ -167,8 +167,12 @@ export class Source {
 		effect.cleanup(() => sub.close());
 
 		// Create consumer with slightly less latency than the render worklet to avoid underflowing.
+		// Fallback to "legacy" for backward compatibility with Rust publishers
+		const container = config.container ?? "legacy";
+		console.log(`[Audio Subscriber] Using container format: ${container}`);
 		const consumer = new Frame.Consumer(sub, {
 			latency: Math.max(this.latency.peek() - JITTER_UNDERHEAD, 0) as Time.Milli,
+			container,
 		});
 		effect.cleanup(() => consumer.close());
 
