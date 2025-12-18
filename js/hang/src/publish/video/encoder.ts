@@ -1,7 +1,7 @@
 import type * as Moq from "@moq/lite";
 import { Effect, type Getter, Signal } from "@moq/signals";
 import type * as Catalog from "../../catalog";
-import { u53 } from "../../catalog";
+import { DEFAULT_CONTAINER, u53 } from "../../catalog";
 import * as Frame from "../../frame";
 import * as Time from "../../time";
 import { isFirefox } from "../../util/hacks";
@@ -82,7 +82,7 @@ export class Encoder {
 		effect.set(this.active, true, false);
 
 		effect.spawn(async () => {
-			const container = this.#container ?? "raw";
+			const container = this.#container ?? DEFAULT_CONTAINER;
 			console.log(`[Video Publisher] Using container format: ${container}`);
 
 			let group: Moq.Group | undefined;
@@ -146,7 +146,7 @@ export class Encoder {
 		const config = effect.get(this.#config);
 		if (!config) return;
 
-		const container = this.#container ?? "raw";
+		const container = this.#container ?? DEFAULT_CONTAINER;
 		const catalog: Catalog.VideoConfig = {
 			codec: config.codec,
 			bitrate: config.bitrate ? u53(config.bitrate) : undefined,

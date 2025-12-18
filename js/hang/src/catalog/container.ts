@@ -13,6 +13,6 @@ export type Container = z.infer<typeof ContainerSchema>;
 
 /**
  * Default container format when not specified.
- * Consumers should explicitly fallback to "legacy" for backward compatibility.
+ * Set to legacy for backward compatibility.
  */
-export const DEFAULT_CONTAINER: Container = "raw";
+export const DEFAULT_CONTAINER: Container = "legacy";

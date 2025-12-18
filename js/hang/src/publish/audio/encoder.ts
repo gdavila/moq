@@ -1,6 +1,7 @@
 import type * as Moq from "@moq/lite";
 import { Effect, type Getter, Signal } from "@moq/signals";
 import type * as Catalog from "../../catalog";
+import { DEFAULT_CONTAINER } from "../../catalog";
 import { u53 } from "../../catalog/integers";
 import * as Frame from "../../frame";
 import * as Time from "../../time";
@@ -124,7 +125,7 @@ export class Encoder {
 		const worklet = effect.get(this.#worklet);
 		if (!worklet) return;
 
-		const container = this.#container ?? "raw";
+		const container = this.#container ?? DEFAULT_CONTAINER;
 		const config = {
 			codec: "opus",
 			sampleRate: u53(worklet.context.sampleRate),
@@ -199,7 +200,7 @@ export class Encoder {
 			});
 			effect.cleanup(() => encoder.close());
 
-			const container = this.#container ?? "raw";
+			const container = this.#container ?? DEFAULT_CONTAINER;
 			console.log(`[Audio Publisher] Using container format: ${container}`);
 			console.debug("encoding audio", config);
 			encoder.configure(config);

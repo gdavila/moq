@@ -18,6 +18,7 @@ export type BroadcastProps = {
 	user?: User.Props;
 	chat?: Chat.Props;
 	preview?: PreviewProps;
+	container?: Catalog.Container;
 };
 
 export class Broadcast {
@@ -34,6 +35,7 @@ export class Broadcast {
 	chat: Chat.Root;
 	preview: Preview;
 	user: User.Info;
+	
 
 	signals = new Effect();
 
@@ -42,8 +44,8 @@ export class Broadcast {
 		this.enabled = Signal.from(props?.enabled ?? false);
 		this.path = Signal.from(props?.path);
 
-		this.audio = new Audio.Encoder(props?.audio);
-		this.video = new Video.Root(props?.video);
+		this.audio = new Audio.Encoder(props?.audio, props?.container);
+		this.video = new Video.Root({ ...props?.video, container: props?.container });
 		this.location = new Location.Root(props?.location);
 		this.chat = new Chat.Root(props?.chat);
 		this.preview = new Preview(props?.preview);
