@@ -38,7 +38,7 @@ export class Encoder {
 	muted: Signal<boolean>;
 	volume: Signal<number>;
 	maxLatency: Time.Milli;
-	#container?: Catalog.Container;
+	#container: Catalog.Container;
 
 	source: Signal<Source | undefined>;
 
@@ -63,7 +63,7 @@ export class Encoder {
 		this.muted = Signal.from(props?.muted ?? false);
 		this.volume = Signal.from(props?.volume ?? 1);
 		this.maxLatency = props?.maxLatency ?? (100 as Time.Milli); // Default is a group every 100ms
-		this.#container = container;
+		this.#container = container ?? DEFAULT_CONTAINER;
 
 		this.#signals.effect(this.#runSource.bind(this));
 		this.#signals.effect(this.#runConfig.bind(this));
@@ -125,13 +125,12 @@ export class Encoder {
 		const worklet = effect.get(this.#worklet);
 		if (!worklet) return;
 
-		const container = this.#container ?? DEFAULT_CONTAINER;
 		const config = {
 			codec: "opus",
 			sampleRate: u53(worklet.context.sampleRate),
 			numberOfChannels: u53(worklet.channelCount),
 			bitrate: u53(worklet.channelCount * 32_000),
-			container,
+			container: this.#container,
 		};
 
 		effect.set(this.#config, config);
@@ -175,6 +174,8 @@ export class Encoder {
 			// We're using an async polyfill temporarily for Safari support.
 			await libav.polyfill();
 
+			console.log(`[Audio Publisher] Using container format: ${this.#container}`);
+
 			const encoder = new AudioEncoder({
 				output: (frame) => {
 					if (frame.type !== "key") {
@@ -200,8 +201,6 @@ export class Encoder {
 			});
 			effect.cleanup(() => encoder.close());
 
-			const container = this.#container ?? DEFAULT_CONTAINER;
-			console.log(`[Audio Publisher] Using container format: ${container}`);
 			console.debug("encoding audio", config);
 			encoder.configure(config);
 
