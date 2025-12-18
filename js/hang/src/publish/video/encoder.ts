@@ -10,6 +10,7 @@ import type { Source } from "./types";
 export interface EncoderProps {
 	enabled?: boolean | Signal<boolean>;
 	config?: EncoderConfig | Signal<EncoderConfig | undefined>;
+	container?: Catalog.Container;
 }
 
 // TODO support signals?
@@ -58,17 +59,12 @@ export class Encoder {
 	// True when the encoder is actively serving a track.
 	active = new Signal<boolean>(false);
 
-	constructor(
-		frame: Getter<VideoFrame | undefined>,
-		source: Signal<Source | undefined>,
-		props?: EncoderProps,
-		container?: Catalog.Container,
-	) {
+	constructor(frame: Getter<VideoFrame | undefined>, source: Signal<Source | undefined>, props?: EncoderProps) {
 		this.frame = frame;
 		this.source = source;
 		this.enabled = Signal.from(props?.enabled ?? false);
 		this.config = Signal.from(props?.config);
-		this.#container = container ?? DEFAULT_CONTAINER;
+		this.#container = props?.container ?? DEFAULT_CONTAINER;
 
 		this.#signals.effect(this.#runCatalog.bind(this));
 		this.#signals.effect(this.#runConfig.bind(this));

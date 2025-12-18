@@ -13,7 +13,6 @@ export type Props = {
 	hd?: EncoderProps;
 	sd?: EncoderProps;
 	flip?: boolean | Signal<boolean>;
-	container?: Catalog.Container;
 };
 
 export class Root {
@@ -36,8 +35,8 @@ export class Root {
 	constructor(props?: Props) {
 		this.source = Signal.from(props?.source);
 
-		this.hd = new Encoder(this.frame, this.source, props?.hd, props?.container);
-		this.sd = new Encoder(this.frame, this.source, props?.sd, props?.container);
+		this.hd = new Encoder(this.frame, this.source, props?.hd);
+		this.sd = new Encoder(this.frame, this.source, props?.sd);
 
 		this.flip = Signal.from(props?.flip ?? false);
 

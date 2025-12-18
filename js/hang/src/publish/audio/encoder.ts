@@ -27,6 +27,8 @@ export type EncoderProps = {
 	// The size of each group. Larger groups mean fewer drops but the viewer can fall further behind.
 	// NOTE: Each frame is always flushed to the network immediately.
 	maxLatency?: Time.Milli;
+
+	container?: Catalog.Container;
 };
 
 export class Encoder {
@@ -57,13 +59,13 @@ export class Encoder {
 
 	#signals = new Effect();
 
-	constructor(props?: EncoderProps, container?: Catalog.Container) {
+	constructor(props?: EncoderProps) {
 		this.source = Signal.from(props?.source);
 		this.enabled = Signal.from(props?.enabled ?? false);
 		this.muted = Signal.from(props?.muted ?? false);
 		this.volume = Signal.from(props?.volume ?? 1);
 		this.maxLatency = props?.maxLatency ?? (100 as Time.Milli); // Default is a group every 100ms
-		this.#container = container ?? DEFAULT_CONTAINER;
+		this.#container = props?.container ?? DEFAULT_CONTAINER;
 
 		this.#signals.effect(this.#runSource.bind(this));
 		this.#signals.effect(this.#runConfig.bind(this));

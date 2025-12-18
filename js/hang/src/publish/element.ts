@@ -73,14 +73,15 @@ export default class HangPublish extends HTMLElement {
 			connection: this.connection.established,
 			enabled: this.#enabled,
 			path: this.path,
-			container: "raw",
 
 			audio: {
 				enabled: this.#audioEnabled,
+				container: "raw",
 			},
 			video: {
 				hd: {
 					enabled: this.#videoEnabled,
+					container: "raw",
 				},
 			},
 		});
