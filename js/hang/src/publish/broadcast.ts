@@ -35,7 +35,6 @@ export class Broadcast {
 	chat: Chat.Root;
 	preview: Preview;
 	user: User.Info;
-	
 
 	signals = new Effect();
 
